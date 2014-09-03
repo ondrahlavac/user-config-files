@@ -80,22 +80,35 @@ if [ -f ~/.bash_aliases ]; then
     . ~/.bash_aliases
 fi
 
-# enable color support of ls and also add handy aliases
-if [ -x /usr/bin/dircolors ]; then
-    eval "`dircolors -b`"
-    alias ls='ls --color=auto'
+# dircolors... make sure that we have a color terminal, dircolors exists, and ls supports it.
+if $TERM_IS_COLOR && ( dircolors --help && ls --color ) &> /dev/null; then
+    # For some reason, the unixs machines need me to use $HOME instead of ~
+    # List files from highest priority to lowest. As soon as the loop finds one that works, it will exit.
+    for POSSIBLE_DIR_COLORS in "$HOME/.dir_colors" "/etc/DIR_COLORS"; do
+        [[ -f "$POSSIBLE_DIR_COLORS" ]] && [[ -r "$POSSIBLE_DIR_COLORS" ]] && eval `dircolors -b "$POSSIBLE_DIR_COLORS"` && break
+    done
+
+    alias ls="ls --color=auto"
+    alias ll="ls --color=auto -l"
+    alias la='ls --color=auto -A'
+    alias l='ls --color=auto -CF'
+
     alias dir='dir --color=auto'
     alias vdir='vdir --color=auto'
 
     alias grep='grep --color=auto'
     alias fgrep='fgrep --color=auto'
     alias egrep='egrep --color=auto'
+else
+    # No color, so put a slash at the end of directory names, etc. to differentiate.
+    alias ls="ls -F"
+    alias ll="ls -lF"
+    alias la='ls -A'
+    alias l='ls -CF'
 fi
 
 # some more ls aliases
 alias ll='ls -l'
-alias la='ls -A'
-alias l='ls -CF'
 
 # enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
